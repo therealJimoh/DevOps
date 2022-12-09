@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "mysql-chart.fullname" . }}
+  labels:
+    {{- include "mysql-chart.labels" . | nindent 4 }}
+  {{- with .Values.podAnnotations }}
+  annotations:
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  # {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  # {{- end }}
+  selector:
+    matchLabels:
+      {{- include "mysql-chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "mysql-chart.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3306
+              protocol: TCP
+          volumeMounts:
+            - name: {{ .Values.volumeMounts.name }}
+              mountPath: {{ .Values.volumeMounts.path }}
+          env:
+            - name: {{ template "mysql-chart.secretName" . }}
+              valueFrom:
+                secretKeyRef: 
+                   name: {{ template "mysql-chart.secretName" . }}
+                   key: mysql_password
+  volumeClaimTemplates:
+    - metadata:
+        name: {{ .Values.volumeClaimTemplates.name }}
+      spec:
+        accessModes: {{ .Values.volumeClaimTemplates.accessModes }}
+        storageClassName: {{ .Values.volumeClaimTemplates.storageClassName }}
+        resources:
+          requests:
+            storage: {{ .Values.volumeClaimTemplates.resources.requests.storage }}
+          
+
+
