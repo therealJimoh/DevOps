@@ -22,7 +22,7 @@ RUN chown -R www-data:www-data /app
 # Run the PHP-FPM process as the www-data user
 USER www-data
 
-# Expose port 9000 for the PHP-FPM process
+# Expose port 5000 for the PHP-FPM process
 EXPOSE 5000
 
 # Start the PHP-FPM process
